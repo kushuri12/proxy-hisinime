@@ -11,17 +11,21 @@
       const key = "progress_" + url;
 
       async function init() {
-        // resolve link asli .mp4
-        const r = await fetch("/api/resolve?url=" + encodeURIComponent(url));
-        const data = await r.json();
+        try {
+          // resolve link asli .mp4
+          const r = await fetch("/api/resolve?url=" + encodeURIComponent(url));
+          const data = await r.json();
 
-        if (data.direct) {
-          v.src = "/api/proxy?url=" + encodeURIComponent(data.direct);
-        } else {
-          console.error("No direct video found");
+          if (data.direct) {
+            v.src = "/api/proxy?url=" + encodeURIComponent(data.direct);
+          } else {
+            console.error("No direct video found");
+          }
+        } catch (error) {
+          console.error("Error initializing video:", error);
         }
       }
-
+      
       init();
 
       // kirim progress ke parent
@@ -32,10 +36,12 @@
         }
       }, 5000);
 
-      // restore posisi terakhir
-      window.addEventListener("load", () => {
+      // restore posisi terakhir setelah video termuat
+     v.addEventListener("loadedmetadata", () => {
         const t = localStorage.getItem(key);
-        if (t) v.currentTime = parseFloat(t);
+          if (t) {
+            v.currentTime = parseFloat(t);
+          }
       });
 
       // terima pesan seek dari parent
