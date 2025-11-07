@@ -7,11 +7,22 @@
       const params = new URLSearchParams(location.search);
       const url = params.get("url");
       const v = document.getElementById("v");
-      const origin = "https://gimsns.com"; // ubah ke domain utama kamu
+      const origin = "https://gimsns.com";
       const key = "progress_" + url;
 
-      // pakai proxy dari vercel
-      v.src = "/api/proxy?url=" + encodeURIComponent(url);
+      async function init() {
+        // resolve link asli .mp4
+        const r = await fetch("/api/resolve?url=" + encodeURIComponent(url));
+        const data = await r.json();
+
+        if (data.direct) {
+          v.src = "/api/proxy?url=" + encodeURIComponent(data.direct);
+        } else {
+          console.error("No direct video found");
+        }
+      }
+
+      init();
 
       // kirim progress ke parent
       setInterval(() => {
