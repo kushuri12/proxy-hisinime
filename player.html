@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <body style="margin:0;background:black;">
+    <video id="v" controls width="100%" height="100%"></video>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      const url = params.get("url");
+      const v = document.getElementById("v");
+      const origin = "https://gimsns.com"; // ubah ke domain utama kamu
+      const key = "progress_" + url;
+
+      // pakai proxy dari vercel
+      v.src = "/api/proxy?url=" + encodeURIComponent(url);
+
+      // kirim progress ke parent
+      setInterval(() => {
+        if (v.duration > 0) {
+          window.parent.postMessage({ type: "PROGRESS", time: v.currentTime }, origin);
+          localStorage.setItem(key, v.currentTime);
+        }
+      }, 5000);
+
+      // restore posisi terakhir
+      window.addEventListener("load", () => {
+        const t = localStorage.getItem(key);
+        if (t) v.currentTime = parseFloat(t);
+      });
+
+      // terima pesan seek dari parent
+      window.addEventListener("message", (e) => {
+        if (e.origin !== origin) return;
+        const data = e.data;
+        if (data.type === "SEEK") v.currentTime = data.time;
+      });
+    </script>
+  </body>
+</html>
